@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -395,7 +394,7 @@ body::before {
       <p>כיתה חיה · זמן אמת · כולם רואים</p>
     </div>
     <div style="margin-top:28px">
-      <button class="btn btn-primary" style="font-size:1.1rem;padding:16px" onclick="goStudentJoin()">כניסה לכיתה ←</button>
+      <button class="btn btn-primary" style="font-size:1.1rem;padding:16px" onclick="goStudentJoin()">כניסה לכיתה <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:inline-block;vertical-align:middle;margin-right:6px" xmlns="http://www.w3.org/2000/svg"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div style="text-align:center;margin-top:18px">
         <a href="#" onclick="goTeacherSetup();return false;"
           style="font-size:0.73rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;
@@ -415,9 +414,9 @@ body::before {
         <label>שם המורה</label>
         <input type="text" id="teacherName" placeholder="למשל: נדב" maxlength="20">
       </div>
-      <button class="btn btn-primary" id="btnCreateRoom" onclick="createRoom()">צור כיתה ←</button>
+      <button class="btn btn-primary" id="btnCreateRoom" onclick="createRoom()">צור כיתה <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:inline-block;vertical-align:middle;margin-right:6px" xmlns="http://www.w3.org/2000/svg"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
-    <button class="btn btn-ghost" style="margin-top:8px" onclick="showScreen('screen-home')">← חזרה</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="showScreen('screen-home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:inline-block;vertical-align:middle;margin-left:6px" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> חזרה</button>
   </div>
 
   <!-- ══════════ SCREEN: TEACHER ROOM ══════════ -->
@@ -473,9 +472,9 @@ body::before {
         <input type="text" id="joinCode" placeholder="למשל: XK47" maxlength="4"
           class="big" oninput="this.value=this.value.toUpperCase()">
       </div>
-      <button class="btn btn-primary" onclick="joinRoom()">הצטרף ←</button>
+      <button class="btn btn-primary" onclick="joinRoom()">הצטרף <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:inline-block;vertical-align:middle;margin-right:6px" xmlns="http://www.w3.org/2000/svg"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
-    <button class="btn btn-ghost" style="margin-top:8px" onclick="showScreen('screen-home')">← חזרה</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="showScreen('screen-home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:inline-block;vertical-align:middle;margin-left:6px" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> חזרה</button>
   </div>
 
   <!-- ══════════ SCREEN: STUDENT NAME ══════════ -->
@@ -486,7 +485,7 @@ body::before {
         <label>השם שלך</label>
         <input type="text" id="studentName" placeholder="הכנס את שמך" maxlength="20">
       </div>
-      <button class="btn btn-primary" onclick="setStudentName()">המשך ←</button>
+      <button class="btn btn-primary" onclick="setStudentName()">המשך <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:inline-block;vertical-align:middle;margin-right:6px" xmlns="http://www.w3.org/2000/svg"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
   </div>
 
@@ -512,7 +511,7 @@ body::before {
           <div class="mc-hint">לאחר 20 קפיצות<br>מדוד מיד</div>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="submitMeasure()">שלח לגרף ←</button>
+      <button class="btn btn-primary" onclick="submitMeasure()">שלח לגרף <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:inline-block;vertical-align:middle;margin-right:6px" xmlns="http://www.w3.org/2000/svg"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
   </div>
 
@@ -636,7 +635,7 @@ async function createRoom() {
   showScreen('screen-teacher-room');
   listenStudents(code, 'teacher');
 
-  btn.disabled = false; btn.textContent = 'צור כיתה ←';
+  btn.disabled = false; btn.textContent = 'צור כיתה →';
 }
 
 function copyCode() {
@@ -883,3 +882,4 @@ cleanOldRooms();
 </script>
 </body>
 </html>
+
