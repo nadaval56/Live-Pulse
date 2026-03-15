@@ -364,11 +364,59 @@ body::before {
   line-height: 1.6;
 }
 
-/* ── RESPONSIVE ── */
+/* ── RESPONSIVE MOBILE ── */
 @media (max-width: 400px) {
   .role-cards { grid-template-columns: 1fr; }
   .measure-cards { grid-template-columns: 1fr; }
   .home-hero h1 { font-size: 1.9rem; }
+}
+
+/* ── RESPONSIVE DESKTOP ── */
+@media (min-width: 768px) {
+  .app { max-width: 980px; padding: 48px 48px 80px; }
+  .logo { margin-bottom: 56px; }
+  .ecg-line { height: 52px; }
+  .logo-text { font-size: 0.9rem; letter-spacing: 3px; }
+  .home-hero { padding: 32px 0 52px; }
+  .home-hero h1 { font-size: 4.8rem; }
+  .home-hero p { font-size: 1.1rem; }
+  .card { padding: 40px 36px; border-radius: 20px; margin-bottom: 24px; }
+  .card-title { font-size: 0.85rem; margin-bottom: 22px; }
+  .field { margin-bottom: 28px; }
+  .field label { font-size: 1rem; margin-bottom: 12px; }
+  .field input { padding: 18px 20px; font-size: 1.3rem; border-radius: 12px; }
+  .field input.big { font-size: 2.8rem; }
+  .btn { padding: 20px; font-size: 1.25rem; border-radius: 14px; }
+  .btn-sm { padding: 10px 22px; font-size: 1rem; }
+  .btn-danger { font-size: 1.05rem; padding: 16px; }
+  .room-code-display { padding: 36px; border-radius: 18px; }
+  .room-code-display .code { font-size: 5.5rem; letter-spacing: 18px; }
+  .room-code-display .code-hint { font-size: 1rem; margin-top: 12px; }
+  .live-badge { font-size: 0.9rem; padding: 8px 18px; }
+  .live-dot { width: 9px; height: 9px; }
+  .student-row { padding: 16px 20px; border-radius: 12px; }
+  .student-row .sname { font-size: 1.2rem; }
+  .student-row .svals { font-size: 1.1rem; gap: 20px; }
+  .chart-wrap { height: 400px; margin-top: 14px; }
+  .range-strip { gap: 14px; margin-top: 18px; }
+  .range-item { padding: 18px 14px; border-radius: 12px; }
+  .range-item .rv { font-size: 1.35rem; margin-bottom: 6px; }
+  .range-item .rl { font-size: 0.85rem; }
+  .measure-cards { gap: 18px; margin-bottom: 28px; }
+  .measure-card { padding: 30px 24px; border-radius: 18px; }
+  .measure-card .mc-icon { font-size: 2.8rem; margin-bottom: 14px; }
+  .measure-card .mc-label { font-size: 1rem; margin-bottom: 18px; }
+  .measure-card .mc-hint { font-size: 0.9rem; margin-top: 14px; }
+  .my-result { gap: 16px; margin-bottom: 24px; }
+  .result-box { padding: 26px; border-radius: 14px; }
+  .result-box .rb-val { font-size: 3rem; margin-bottom: 8px; }
+  .result-box .rb-lbl { font-size: 0.9rem; }
+  .status-tag { font-size: 0.8rem; padding: 5px 12px; margin-top: 10px; }
+  .note { font-size: 1rem; padding: 16px 20px; margin-top: 16px; }
+  .section-header { margin-bottom: 20px; }
+  .waiting { padding: 40px 0; font-size: 1rem; }
+  .waiting .spinner { width: 40px; height: 40px; margin-bottom: 18px; }
+  #studentCount { font-size: 1rem !important; }
 }
 
 .fade-in { animation: fadeUp 0.4s ease; }
@@ -882,4 +930,3 @@ cleanOldRooms();
 </script>
 </body>
 </html>
-
