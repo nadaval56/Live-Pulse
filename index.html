@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -393,16 +394,15 @@ body::before {
       <h1>מדידת<br>דופק</h1>
       <p>כיתה חיה · זמן אמת · כולם רואים</p>
     </div>
-    <div class="role-cards">
-      <div class="role-card" onclick="goTeacherSetup()">
-        <div class="role-icon">👩‍🏫</div>
-        <div class="role-title">מורה</div>
-        <div class="role-sub">פתח כיתה חדשה</div>
-      </div>
-      <div class="role-card" onclick="goStudentJoin()">
-        <div class="role-icon">🧑‍🎓</div>
-        <div class="role-title">תלמיד</div>
-        <div class="role-sub">הצטרף לכיתה</div>
+    <div style="margin-top:28px">
+      <button class="btn btn-primary" style="font-size:1.1rem;padding:16px" onclick="goStudentJoin()">כניסה לכיתה ←</button>
+      <div style="text-align:center;margin-top:18px">
+        <a href="#" onclick="goTeacherSetup();return false;"
+          style="font-size:0.73rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;
+          text-decoration:none;border-bottom:1px dashed var(--muted);padding-bottom:2px;
+          transition:color 0.2s;letter-spacing:0.5px"
+          onmouseover="this.style.color='var(--green)';this.style.borderColor='var(--green)'"
+          onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--muted)'">כניסה למורה</a>
       </div>
     </div>
   </div>
@@ -454,9 +454,9 @@ body::before {
         <canvas id="teacherChart"></canvas>
       </div>
       <div class="range-strip">
-        <div class="range-item low"><span class="rv">&lt;60</span><span class="rl">מתחת לטווח<br>הרגיל</span></div>
+        <div class="range-item low"><span class="rv" dir="ltr">&lt;60</span><span class="rl">מתחת לטווח<br>הרגיל</span></div>
         <div class="range-item ok"> <span class="rv">60–100</span><span class="rl">טווח רגיל<br>במנוחה</span></div>
-        <div class="range-item high"><span class="rv">&gt;100</span><span class="rl">מעל הטווח<br>הרגיל</span></div>
+        <div class="range-item high"><span class="rv" dir="ltr">&gt;100</span><span class="rl">מעל הטווח<br>הרגיל</span></div>
       </div>
       <div class="note">⚠️ הערכים לצורך לימוד בלבד — מדידה ידנית עלולה להיות לא מדויקת. לא לשימוש קליני.</div>
     </div>
@@ -543,9 +543,9 @@ body::before {
         <canvas id="studentChart"></canvas>
       </div>
       <div class="range-strip">
-        <div class="range-item low"><span class="rv">&lt;60</span><span class="rl">מתחת לטווח<br>הרגיל</span></div>
+        <div class="range-item low"><span class="rv" dir="ltr">&lt;60</span><span class="rl">מתחת לטווח<br>הרגיל</span></div>
         <div class="range-item ok"> <span class="rv">60–100</span><span class="rl">טווח רגיל<br>במנוחה</span></div>
-        <div class="range-item high"><span class="rv">&gt;100</span><span class="rl">מעל הטווח<br>הרגיל</span></div>
+        <div class="range-item high"><span class="rv" dir="ltr">&gt;100</span><span class="rl">מעל הטווח<br>הרגיל</span></div>
       </div>
       <div class="note">⚠️ הערכים לצורך לימוד בלבד — מדידה ידנית עלולה להיות לא מדויקת.</div>
     </div>
