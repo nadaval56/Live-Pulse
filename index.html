@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מד דופק כיתתי</title>
+
+<!--
+╔══════════════════════════════════════════════════════════╗
+║  הגדרת Firebase — עשה זאת פעם אחת (כ-10 דקות):          ║
+║                                                          ║
+║  1. לך ל: https://console.firebase.google.com            ║
+║  2. "Add project" → שם כלשהו → המשך                      ║
+║  3. Realtime Database → Create database → Start in       ║
+║     test mode → Enable                                   ║
+║  4. Project Settings (גלגל שיניים) → Your apps →         ║
+║     </> (Web) → Register app                             ║
+║  5. העתק את ה-firebaseConfig והחלף את הערכים             ║
+║     בבלוק "FIREBASE CONFIG" למטה                         ║
+╚══════════════════════════════════════════════════════════╝
+-->
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Heebo:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<style>
+:root {
+  --bg:        #080d12;
+  --surface:   #0f1820;
+  --surface2:  #14202c;
+  --surface3:  #1a2a38;
+  --green:     #00e5a0;
+  --green-dim: rgba(0,229,160,0.1);
+  --green-glow:rgba(0,229,160,0.35);
+  --orange:    #ff8c42;
+  --blue:      #4da6ff;
+  --text:      #c8d8e8;
+  --muted:     #4a6070;
+  --border:    rgba(0,229,160,0.1);
+  --border2:   rgba(0,229,160,0.2);
+  --danger:    #ff4757;
+  --warn:      #ffd32a;
+  --r: 14px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Heebo', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* Grid background */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    repeating-linear-gradient(0deg,   transparent, transparent 39px, rgba(0,229,160,0.03) 40px),
+    repeating-linear-gradient(90deg,  transparent, transparent 39px, rgba(0,229,160,0.03) 40px);
+  pointer-events: none; z-index: 0;
+}
+
+.app {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 520px;
+  padding: 28px 18px 48px;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── LOGO ── */
+.logo {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 36px;
+}
+.ecg-line {
+  flex: 1; height: 32px;
+  filter: drop-shadow(0 0 6px var(--green-glow));
+}
+.logo-text { font-size: 0.65rem; font-family: 'IBM Plex Mono', monospace;
+  color: var(--muted); letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
+
+/* ── HOME SCREEN ── */
+.home-hero {
+  text-align: center;
+  padding: 20px 0 32px;
+}
+.home-hero h1 {
+  font-size: 2.4rem; font-weight: 900;
+  color: #fff; line-height: 1.05;
+  letter-spacing: -1px; margin-bottom: 8px;
+}
+.home-hero p {
+  font-size: 0.85rem; color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.5px;
+}
+
+.role-cards {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  margin-top: 28px;
+}
+
+.role-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 24px 18px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.role-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--green-dim);
+  opacity: 0; transition: opacity 0.2s;
+}
+.role-card:hover { border-color: var(--green); transform: translateY(-2px); }
+.role-card:hover::after { opacity: 1; }
+.role-card:active { transform: translateY(0); }
+
+.role-icon { font-size: 2rem; margin-bottom: 10px; }
+.role-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
+.role-sub { font-size: 0.72rem; color: var(--muted); margin-top: 4px;
+  font-family: 'IBM Plex Mono', monospace; }
+
+/* ── GENERIC CARD ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 28px 24px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 0.65rem; font-family: 'IBM Plex Mono', monospace;
+  color: var(--green); letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 16px;
+}
+
+/* ── INPUTS ── */
+.field { margin-bottom: 18px; }
+.field label {
+  display: block; font-size: 0.75rem; color: var(--muted);
+  margin-bottom: 8px; font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.5px;
+}
+.field input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #fff; font-family: 'Heebo', sans-serif; font-size: 1rem;
+  outline: none; transition: border-color 0.2s;
+  direction: rtl;
+}
+.field input:focus { border-color: var(--green); }
+.field input::placeholder { color: var(--muted); }
+
+.field input.big {
+  font-size: 2rem; font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600; text-align: center; letter-spacing: 4px;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  width: 100%; padding: 14px;
+  border-radius: 10px; border: none; cursor: pointer;
+  font-family: 'Heebo', sans-serif; font-size: 1rem; font-weight: 700;
+  transition: all 0.2s; letter-spacing: 0.3px;
+}
+.btn-primary {
+  background: var(--green); color: #040a0d;
+}
+.btn-primary:hover { background: #00fbb5; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text);
+}
+.btn-ghost:hover { border-color: var(--green); color: var(--green); }
+
+.btn-danger {
+  background: transparent;
+  border: 1px solid rgba(255,71,87,0.3);
+  color: var(--danger);
+  font-size: 0.85rem; padding: 10px;
+}
+.btn-danger:hover { background: rgba(255,71,87,0.1); }
+
+.btn-sm {
+  width: auto; padding: 7px 16px;
+  font-size: 0.8rem; border-radius: 8px;
+}
+
+/* ── ROOM CODE ── */
+.room-code-display {
+  background: var(--surface2);
+  border: 2px dashed var(--border2);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.room-code-display .code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 3.5rem; font-weight: 600;
+  color: var(--green); letter-spacing: 12px;
+  display: block;
+  text-shadow: 0 0 20px var(--green-glow);
+}
+.room-code-display .code-hint {
+  font-size: 0.7rem; color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  margin-top: 8px;
+}
+
+/* ── LIVE BADGE ── */
+.live-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(0,229,160,0.08);
+  border: 1px solid var(--border2);
+  border-radius: 999px; padding: 5px 12px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem;
+  color: var(--green);
+}
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  animation: pulse 1.3s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
+
+/* ── STUDENT LIST (teacher view) ── */
+.student-list { display: flex; flex-direction: column; gap: 8px; }
+.student-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface2); border-radius: 8px; padding: 10px 14px;
+  gap: 10px;
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn { from { opacity:0; transform:translateX(8px); } to { opacity:1; transform:none; } }
+
+.student-row .sname { font-weight: 600; font-size: 0.9rem; }
+.student-row .svals {
+  display: flex; gap: 14px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem;
+}
+.val-rest  { color: var(--green); }
+.val-active { color: var(--orange); }
+.val-pending { color: var(--muted); font-style: italic; font-size: 0.75rem; }
+
+/* ── CHART ── */
+.chart-wrap { position: relative; height: 220px; margin-top: 8px; }
+
+/* ── RANGE STRIP ── */
+.range-strip {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+  margin-top: 12px;
+}
+.range-item {
+  background: var(--surface2); border-radius: 8px;
+  padding: 10px 8px; text-align: center;
+}
+.range-item .rv {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.9rem; font-weight: 600;
+  display: block; margin-bottom: 3px;
+}
+.range-item .rl { font-size: 0.62rem; color: var(--muted); line-height: 1.4; }
+.range-item.low  .rv { color: var(--blue); }
+.range-item.ok   .rv { color: var(--green); }
+.range-item.high .rv { color: var(--orange); }
+
+/* ── STUDENT MEASURE ── */
+.measure-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.measure-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r); padding: 20px 16px; text-align: center;
+}
+.measure-card .mc-icon { font-size: 1.8rem; margin-bottom: 8px; }
+.measure-card .mc-label { font-size: 0.7rem; color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.5px; margin-bottom: 12px; }
+.measure-card .mc-hint { font-size: 0.65rem; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+
+/* ── MY RESULT ── */
+.my-result {
+  display: flex; gap: 10px; margin-bottom: 16px;
+}
+.result-box {
+  flex: 1; background: var(--surface2); border-radius: 10px;
+  padding: 16px; text-align: center;
+}
+.result-box .rb-val {
+  font-family: 'IBM Plex Mono', monospace; font-size: 2rem; font-weight: 600;
+  display: block; margin-bottom: 4px;
+}
+.result-box .rb-lbl { font-size: 0.65rem; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+.result-box.rest-box .rb-val { color: var(--green); }
+.result-box.active-box .rb-val { color: var(--orange); }
+
+/* ── STATUS TAG ── */
+.status-tag {
+  display: inline-block; font-size: 0.6rem; padding: 3px 8px; border-radius: 4px;
+  font-family: 'IBM Plex Mono', monospace; margin-top: 6px;
+}
+.tag-low  { background: rgba(77,166,255,0.12); color: var(--blue); }
+.tag-ok   { background: rgba(0,229,160,0.1);  color: var(--green); }
+.tag-high { background: rgba(255,140,66,0.12); color: var(--orange); }
+
+/* ── SECTION HEADER ── */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--surface3); border: 1px solid var(--border2);
+  border-radius: 999px; padding: 10px 20px;
+  font-size: 0.85rem; color: var(--green);
+  font-family: 'IBM Plex Mono', monospace;
+  transition: transform 0.3s ease; z-index: 999;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── WAITING STATE ── */
+.waiting {
+  text-align: center; padding: 28px 0;
+  color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem;
+}
+.waiting .spinner {
+  width: 28px; height: 28px; border: 2px solid var(--border2);
+  border-top-color: var(--green); border-radius: 50%;
+  animation: spin 0.8s linear infinite; margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── NOTE ── */
+.note {
+  background: rgba(0,229,160,0.05); border-right: 3px solid var(--green);
+  border-radius: 0 8px 8px 0; padding: 10px 14px;
+  font-size: 0.75rem; color: var(--muted); margin-top: 10px;
+  line-height: 1.6;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 400px) {
+  .role-cards { grid-template-columns: 1fr; }
+  .measure-cards { grid-template-columns: 1fr; }
+  .home-hero h1 { font-size: 1.9rem; }
+}
+
+.fade-in { animation: fadeUp 0.4s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- LOGO (shared) -->
+  <div class="logo">
+    <svg class="ecg-line" viewBox="0 0 200 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="0,16 30,16 40,4 50,28 60,10 70,22 80,16 120,16 130,4 140,28 150,10 160,22 170,16 200,16"
+        stroke="#00e5a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="logo-text">מד דופק כיתתי</span>
+  </div>
+
+  <!-- ══════════ SCREEN: HOME ══════════ -->
+  <div id="screen-home" class="screen active fade-in">
+    <div class="home-hero">
+      <h1>מדידת<br>דופק</h1>
+      <p>כיתה חיה · זמן אמת · כולם רואים</p>
+    </div>
+    <div class="role-cards">
+      <div class="role-card" onclick="goTeacherSetup()">
+        <div class="role-icon">👩‍🏫</div>
+        <div class="role-title">מורה</div>
+        <div class="role-sub">פתח כיתה חדשה</div>
+      </div>
+      <div class="role-card" onclick="goStudentJoin()">
+        <div class="role-icon">🧑‍🎓</div>
+        <div class="role-title">תלמיד</div>
+        <div class="role-sub">הצטרף לכיתה</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN: TEACHER SETUP ══════════ -->
+  <div id="screen-teacher-setup" class="screen fade-in">
+    <div class="card">
+      <div class="card-title">פתיחת כיתה</div>
+      <div class="field">
+        <label>שם המורה</label>
+        <input type="text" id="teacherName" placeholder="למשל: נדב" maxlength="20">
+      </div>
+      <button class="btn btn-primary" id="btnCreateRoom" onclick="createRoom()">צור כיתה ←</button>
+    </div>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="showScreen('screen-home')">← חזרה</button>
+  </div>
+
+  <!-- ══════════ SCREEN: TEACHER ROOM ══════════ -->
+  <div id="screen-teacher-room" class="screen fade-in">
+
+    <div class="card">
+      <div class="section-header">
+        <div class="card-title" style="margin-bottom:0">קוד הכיתה</div>
+        <div class="live-badge"><div class="live-dot"></div>פעיל</div>
+      </div>
+      <div class="room-code-display">
+        <span class="code" id="displayRoomCode">----</span>
+        <div class="code-hint">שלח קוד זה לתלמידים — הם נכנסים לאותו אתר ומזינים אותו</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="copyCode()" style="margin-bottom:8px">📋 העתק קוד</button>
+    </div>
+
+    <div class="card">
+      <div class="section-header">
+        <div class="card-title" style="margin-bottom:0">תלמידים</div>
+        <span id="studentCount" style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--muted)">0 תלמידים</span>
+      </div>
+      <div id="teacherStudentList" class="student-list">
+        <div class="waiting">
+          <div class="spinner"></div>
+          ממתין לתלמידים...
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">גרף הכיתה</div>
+      <div class="chart-wrap">
+        <canvas id="teacherChart"></canvas>
+      </div>
+      <div class="range-strip">
+        <div class="range-item low"><span class="rv">&lt;60</span><span class="rl">מתחת לטווח<br>הרגיל</span></div>
+        <div class="range-item ok"> <span class="rv">60–100</span><span class="rl">טווח רגיל<br>במנוחה</span></div>
+        <div class="range-item high"><span class="rv">&gt;100</span><span class="rl">מעל הטווח<br>הרגיל</span></div>
+      </div>
+      <div class="note">⚠️ הערכים לצורך לימוד בלבד — מדידה ידנית עלולה להיות לא מדויקת. לא לשימוש קליני.</div>
+    </div>
+
+    <button class="btn btn-danger" onclick="closeRoom()">✕ סגור כיתה ומחק נתונים</button>
+  </div>
+
+  <!-- ══════════ SCREEN: STUDENT JOIN ══════════ -->
+  <div id="screen-student-join" class="screen fade-in">
+    <div class="card">
+      <div class="card-title">הצטרפות לכיתה</div>
+      <div class="field">
+        <label>קוד הכיתה (4 אותיות)</label>
+        <input type="text" id="joinCode" placeholder="למשל: XK47" maxlength="4"
+          class="big" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <button class="btn btn-primary" onclick="joinRoom()">הצטרף ←</button>
+    </div>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="showScreen('screen-home')">← חזרה</button>
+  </div>
+
+  <!-- ══════════ SCREEN: STUDENT NAME ══════════ -->
+  <div id="screen-student-name" class="screen fade-in">
+    <div class="card">
+      <div class="card-title" id="studentRoomLabel">כיתה ----</div>
+      <div class="field">
+        <label>השם שלך</label>
+        <input type="text" id="studentName" placeholder="הכנס את שמך" maxlength="20">
+      </div>
+      <button class="btn btn-primary" onclick="setStudentName()">המשך ←</button>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN: STUDENT MEASURE ══════════ -->
+  <div id="screen-student-measure" class="screen fade-in">
+    <div class="card">
+      <div class="card-title">מדידת דופק</div>
+      <div class="measure-cards">
+        <div class="measure-card">
+          <div class="mc-icon">🧘</div>
+          <div class="mc-label">מנוחה — BPM</div>
+          <div class="field" style="margin-bottom:0">
+            <input type="number" id="restBPM" placeholder="72" min="20" max="250" class="big">
+          </div>
+          <div class="mc-hint">מדוד דופק רדיאלי<br>15 שניות × 4</div>
+        </div>
+        <div class="measure-card">
+          <div class="mc-icon">🏃</div>
+          <div class="mc-label">פעילות — BPM</div>
+          <div class="field" style="margin-bottom:0">
+            <input type="number" id="activeBPM" placeholder="120" min="20" max="250" class="big">
+          </div>
+          <div class="mc-hint">לאחר 20 קפיצות<br>מדוד מיד</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="submitMeasure()">שלח לגרף ←</button>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN: STUDENT GRAPH ══════════ -->
+  <div id="screen-student-graph" class="screen fade-in">
+
+    <div class="card">
+      <div class="card-title">הנתונים שלי</div>
+      <div class="my-result">
+        <div class="result-box rest-box">
+          <span class="rb-val" id="myRestVal">--</span>
+          <span class="rb-lbl">מנוחה BPM</span>
+          <div><span class="status-tag" id="myRestTag"></span></div>
+        </div>
+        <div class="result-box active-box">
+          <span class="rb-val" id="myActiveVal">--</span>
+          <span class="rb-lbl">פעילות BPM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-header">
+        <div class="card-title" style="margin-bottom:0">גרף הכיתה</div>
+        <div class="live-badge"><div class="live-dot"></div>עדכון חי</div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="studentChart"></canvas>
+      </div>
+      <div class="range-strip">
+        <div class="range-item low"><span class="rv">&lt;60</span><span class="rl">מתחת לטווח<br>הרגיל</span></div>
+        <div class="range-item ok"> <span class="rv">60–100</span><span class="rl">טווח רגיל<br>במנוחה</span></div>
+        <div class="range-item high"><span class="rv">&gt;100</span><span class="rl">מעל הטווח<br>הרגיל</span></div>
+      </div>
+      <div class="note">⚠️ הערכים לצורך לימוד בלבד — מדידה ידנית עלולה להיות לא מדויקת.</div>
+    </div>
+
+    <button class="btn btn-ghost" style="margin-top:4px" onclick="editMeasure()">✏️ עדכן מדידה</button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   FIREBASE CONFIG — החלף בפרטים שלך מ-Firebase Console
+   ═══════════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey:            "AIzaSyCw1RZdViDHgYbf2R_iByME3VAqJVoMH64",
+  authDomain:        "live-pulse-6700f.firebaseapp.com",
+  databaseURL:       "https://live-pulse-6700f-default-rtdb.firebaseio.com",
+  projectId:         "live-pulse-6700f",
+  storageBucket:     "live-pulse-6700f.firebasestorage.app",
+  messagingSenderId: "362166556095",
+  appId:             "1:362166556095:web:4b86c174eb478641ce3d0a"
+};
+
+/* ═══════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════ */
+let db, currentRoom = null, currentRole = null, currentStudentName = null;
+let teacherChartInst = null, studentChartInst = null;
+let studentListener = null;
+const ROOM_TTL_MS = 24 * 60 * 60 * 1000; // 24 שעות
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+} catch(e) {
+  console.warn('Firebase not configured yet:', e.message);
+}
+
+/* ═══════════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.classList.remove('fade-in');
+  void el.offsetWidth;
+  el.classList.add('fade-in');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goTeacherSetup() { showScreen('screen-teacher-setup'); }
+function goStudentJoin()  { showScreen('screen-student-join'); }
+
+/* ═══════════════════════════════════════════════════
+   ROOM CODE GENERATOR
+   ═══════════════════════════════════════════════════ */
+function genCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:4}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   TEACHER — CREATE ROOM
+   ═══════════════════════════════════════════════════ */
+async function createRoom() {
+  const name = document.getElementById('teacherName').value.trim();
+  if (!name) { toast('הכנס שם'); return; }
+  if (!db)   { toast('Firebase לא מוגדר — ראה הוראות בקוד'); return; }
+
+  const btn = document.getElementById('btnCreateRoom');
+  btn.disabled = true; btn.textContent = 'יוצר...';
+
+  const code = genCode();
+  currentRoom = code;
+  currentRole = 'teacher';
+
+  await db.ref(`rooms/${code}`).set({
+    teacher: name,
+    created: Date.now(),
+    students: {}
+  });
+
+  document.getElementById('displayRoomCode').textContent = code;
+  showScreen('screen-teacher-room');
+  listenStudents(code, 'teacher');
+
+  btn.disabled = false; btn.textContent = 'צור כיתה ←';
+}
+
+function copyCode() {
+  navigator.clipboard?.writeText(currentRoom).then(() => toast('קוד הועתק ✓'));
+}
+
+async function closeRoom() {
+  if (!confirm('לסגור את הכיתה ולמחוק את כל הנתונים?')) return;
+  if (db && currentRoom) await db.ref(`rooms/${currentRoom}`).remove();
+  if (studentListener) studentListener();
+  currentRoom = null;
+  showScreen('screen-home');
+  toast('הכיתה נסגרה');
+}
+
+/* ═══════════════════════════════════════════════════
+   STUDENT — JOIN ROOM
+   ═══════════════════════════════════════════════════ */
+async function joinRoom() {
+  const code = document.getElementById('joinCode').value.trim().toUpperCase();
+  if (code.length !== 4) { toast('קוד בן 4 תווים'); return; }
+  if (!db) { toast('Firebase לא מוגדר'); return; }
+
+  const snap = await db.ref(`rooms/${code}`).get();
+  if (!snap.exists()) { toast('כיתה לא נמצאה — בדוק את הקוד'); return; }
+
+  const roomData = snap.val();
+  // בדוק תפוגה
+  if (Date.now() - roomData.created > ROOM_TTL_MS) {
+    await db.ref(`rooms/${code}`).remove();
+    toast('הכיתה פגה תוקף (24ש)');
+    return;
+  }
+
+  currentRoom = code;
+  currentRole = 'student';
+  document.getElementById('studentRoomLabel').textContent = `כיתה ${code}`;
+  showScreen('screen-student-name');
+}
+
+function setStudentName() {
+  const name = document.getElementById('studentName').value.trim();
+  if (!name) { toast('הכנס שם'); return; }
+  currentStudentName = name;
+  showScreen('screen-student-measure');
+}
+
+/* ═══════════════════════════════════════════════════
+   STUDENT — SUBMIT MEASUREMENT
+   ═══════════════════════════════════════════════════ */
+async function submitMeasure() {
+  const rest   = parseInt(document.getElementById('restBPM').value);
+  const active = parseInt(document.getElementById('activeBPM').value);
+
+  if (!rest || !active || rest < 20 || active < 20) { toast('הכנס ערכים תקינים'); return; }
+  if (rest > 250 || active > 250) { toast('הערך גבוה מדי'); return; }
+
+  await db.ref(`rooms/${currentRoom}/students/${currentStudentName}`).set({
+    rest, active, time: Date.now()
+  });
+
+  // הצג תוצאות + האזן לגרף
+  document.getElementById('myRestVal').textContent   = rest;
+  document.getElementById('myActiveVal').textContent = active;
+  document.getElementById('myRestTag').textContent   = getTagLabel(rest);
+  document.getElementById('myRestTag').className     = `status-tag ${getTagClass(rest)}`;
+
+  showScreen('screen-student-graph');
+  listenStudents(currentRoom, 'student');
+}
+
+function editMeasure() {
+  showScreen('screen-student-measure');
+}
+
+/* ═══════════════════════════════════════════════════
+   REALTIME LISTENER
+   ═══════════════════════════════════════════════════ */
+function listenStudents(code, role) {
+  if (studentListener) studentListener(); // detach previous
+  const ref = db.ref(`rooms/${code}/students`);
+  studentListener = ref.on('value', snap => {
+    const students = [];
+    snap.forEach(child => {
+      students.push({ name: child.key, ...child.val() });
+    });
+    if (role === 'teacher') renderTeacherView(students);
+    else                    renderStudentChart(students);
+  });
+}
+
+/* ═══════════════════════════════════════════════════
+   TEACHER VIEW RENDER
+   ═══════════════════════════════════════════════════ */
+function renderTeacherView(students) {
+  // רשימה
+  const list = document.getElementById('teacherStudentList');
+  document.getElementById('studentCount').textContent = `${students.length} תלמידים`;
+
+  if (students.length === 0) {
+    list.innerHTML = `<div class="waiting"><div class="spinner"></div>ממתין לתלמידים...</div>`;
+  } else {
+    list.innerHTML = students.map(s => `
+      <div class="student-row">
+        <span class="sname">${s.name}</span>
+        <span class="svals">
+          <span class="val-rest">${s.rest ?? '--'}</span>
+          <span style="color:var(--muted)">|</span>
+          <span class="val-active">${s.active ?? '--'}</span>
+        </span>
+      </div>
+    `).join('');
+  }
+
+  // גרף
+  renderChart(students, 'teacherChart', teacherChartInst, inst => teacherChartInst = inst);
+}
+
+/* ═══════════════════════════════════════════════════
+   STUDENT CHART RENDER
+   ═══════════════════════════════════════════════════ */
+function renderStudentChart(students) {
+  renderChart(students, 'studentChart', studentChartInst, inst => studentChartInst = inst);
+}
+
+/* ═══════════════════════════════════════════════════
+   CHART RENDERER
+   ═══════════════════════════════════════════════════ */
+function renderChart(students, canvasId, chartInst, setInst) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  if (chartInst) chartInst.destroy();
+
+  const ready = students.filter(s => s.rest && s.active);
+  const labels = ready.map(s => s.name);
+  const rests  = ready.map(s => s.rest);
+  const acts   = ready.map(s => s.active);
+
+  const inst = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'מנוחה',
+          data: rests,
+          backgroundColor: 'rgba(0,229,160,0.72)',
+          borderRadius: 6, borderSkipped: false,
+        },
+        {
+          label: 'פעילות',
+          data: acts,
+          backgroundColor: 'rgba(255,140,66,0.72)',
+          borderRadius: 6, borderSkipped: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 600, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#14202c',
+          borderColor: 'rgba(0,229,160,0.25)', borderWidth: 1,
+          titleColor: '#c8d8e8', bodyColor: '#00e5a0',
+          bodyFont: { family: 'IBM Plex Mono', size: 13 },
+          callbacks: { label: ctx => ` ${ctx.parsed.y} BPM` }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(0,229,160,0.05)' },
+          ticks: { color: '#c8d8e8', font: { family: 'Heebo', size: 12 } }
+        },
+        y: {
+          min: 40, max: 180,
+          grid: { color: 'rgba(0,229,160,0.05)' },
+          ticks: { color: '#4a6070', font: { family: 'IBM Plex Mono', size: 10 }, stepSize: 20 }
+        }
+      }
+    },
+    plugins: [{
+      id: 'normalZone',
+      beforeDraw(chart) {
+        const { ctx, scales: { x, y } } = chart;
+        const y60  = y.getPixelForValue(60);
+        const y100 = y.getPixelForValue(100);
+        ctx.save();
+        ctx.fillStyle = 'rgba(0,229,160,0.05)';
+        ctx.fillRect(x.left, y100, x.right - x.left, y60 - y100);
+        ctx.setLineDash([4,6]); ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(0,229,160,0.25)';
+        [y60, y100].forEach(yy => {
+          ctx.beginPath(); ctx.moveTo(x.left, yy); ctx.lineTo(x.right, yy); ctx.stroke();
+        });
+        ctx.restore();
+      }
+    }]
+  });
+  setInst(inst);
+}
+
+/* ═══════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════ */
+function getTagLabel(bpm) {
+  if (bpm < 60)  return 'מתחת לטווח הרגיל';
+  if (bpm > 100) return 'מעל הטווח הרגיל';
+  return 'בטווח הרגיל';
+}
+function getTagClass(bpm) {
+  if (bpm < 60)  return 'tag-low';
+  if (bpm > 100) return 'tag-high';
+  return 'tag-ok';
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+/* ═══════════════════════════════════════════════════
+   AUTO-CLEANUP: סגירת חדרים ישנים בכניסה
+   ═══════════════════════════════════════════════════ */
+async function cleanOldRooms() {
+  if (!db) return;
+  try {
+    const snap = await db.ref('rooms').get();
+    if (!snap.exists()) return;
+    const now = Date.now();
+    const updates = {};
+    snap.forEach(child => {
+      const data = child.val();
+      if (now - data.created > ROOM_TTL_MS) updates[child.key] = null;
+    });
+    if (Object.keys(updates).length > 0) await db.ref('rooms').update(updates);
+  } catch(e) { /* silent */ }
+}
+
+cleanOldRooms();
+</script>
+</body>
+</html>
